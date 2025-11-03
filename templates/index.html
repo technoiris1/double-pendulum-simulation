@@ -3,20 +3,32 @@
     <head>
         <meta charset="utf-8" />
         <title>Canvas tutorial</title>
-        <style>
-            canvas {
-                border: 1px solid black;
-            }
-        </style>
     </head>
     <body>
-        <canvas id="canvas" width="150" height="150"></canvas>
+        <canvas id="canvas" width="400" height="800"></canvas>
         <script>
-            function draw() {
-                const canvas = document.getElementById("canvas");
-                const ctx = canvas.getContext("2d");
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            function drawCartesianPlane() {
+                const gridSize = 20;
+                const gridColor = "#ccc";
+                const lineWidth = 1;
+
+                ctx.beginPath();
+                ctx.strokeStyle = gridColor;
+                ctx.lineWidth = lineWidth;
+
+                for (let x = 0; x <= canvas.width; x += gridSize) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                }
+                for (let y = 0; y <= canvas.height; y += gridSize) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
             }
-            draw();
+            drawCartesianPlane();
         </script>
     </body>
 </html>
