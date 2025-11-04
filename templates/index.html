@@ -2,13 +2,14 @@
 <html lang="en-US">
     <head>
         <meta charset="utf-8" />
-        <title>Double Pendulum simulation</title>
+        <title>Double Pendulum Simulation</title>
     </head>
     <body>
         <canvas id="canvas" width="800" height="800"></canvas>
         <script>
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
+
             function drawCartesianPlane() {
                 const gridSize = 20;
                 const gridColor = "#ccc";
@@ -28,21 +29,45 @@
                 }
                 ctx.stroke();
             }
-            drawCartesianPlane();
 
-            function drawPendulum() {
-                const L1 = 150;
-                const L2 = 150;
-                const M1 = 10;
-                const M2 = 10;
-                const G = 0.98;
-                let a1 = Math.PI / 2;
-                let a2 = Math.PI / 2;
-                let av1 = 0;
-                let av2 = 0;
-                let px2 = -1;
-                let py2 = -M1;
+            const L1 = 150;
+            const L2 = 150;
+            const M1 = 10;
+            const M2 = 10;
+            const G = 9.81;
 
+            const dt = 0.01;
+            const stepsPerFrame = 3;
+            let a1 = Math.PI / 2;
+            let a2 = Math.PI / 2;
+            let av1 = 0;
+            let av2 = 0;
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawCartesianPlane();
+                for (let i = 0; i < stepsPerFrame; i++) {
+                    const num1 = -G * (2 * M1 + M2) * Math.sin(a1);
+                    const num2 = -M2 * G * Math.sin(a1 - 2 * a2);
+                    const num3 = -2 * Math.sin(a1 - a2) * M2;
+                    const num4 =
+                        av2 * av2 * L2 + av1 * av1 * L1 * Math.cos(a1 - a2);
+                    const den =
+                        L1 * (2 * M1 + M2 - M2 * Math.cos(2 * a1 - 2 * a2));
+                    const aa1 = (num1 + num2 + num3 * num4) / den;
+
+                    const num5 = 2 * Math.sin(a1 - a2);
+                    const num6 = av1 * av1 * L1 * (M1 + M2);
+                    const num7 = G * (M1 + M2) * Math.cos(a1);
+                    const num8 = av2 * av2 * L2 * M2 * Math.cos(a1 - a2);
+                    const den2 =
+                        L2 * (2 * M1 + M2 - M2 * Math.cos(2 * a1 - 2 * a2));
+                    const aa2 = (num5 * (num6 + num7 + num8)) / den2;
+                    av1 += aa1 * dt;
+                    av2 += aa2 * dt;
+                    a1 += av1 * dt;
+                    a2 += av2 * dt;
+                }
                 const x1 = L1 * Math.sin(a1);
                 const y1 = L1 * Math.cos(a1);
                 const x2 = x1 + L2 * Math.sin(a2);
@@ -50,7 +75,7 @@
 
                 //arms
                 ctx.strokeStyle = "black";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.moveTo(canvas.width / 2, canvas.height / 2);
                 ctx.lineTo(canvas.width / 2 + x1, canvas.height / 2 + y1);
@@ -83,9 +108,11 @@
                     Math.PI * 2,
                 );
                 ctx.fill();
-                requestAnimationFrame(drawPendulum);
+
+                requestAnimationFrame(animate);
             }
-            drawPendulum();
+
+            animate();
         </script>
     </body>
 </html>
