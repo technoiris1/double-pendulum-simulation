@@ -54,7 +54,7 @@ if environment == "production":
     def home():
         return render_template('index.html')
 
-    @app.route('/update', method= ['POST'])
+    @app.route('/update', methods= ['POST'])
     def update():
         return '<p>Hello</p>'
         '''data = request.get_json()
