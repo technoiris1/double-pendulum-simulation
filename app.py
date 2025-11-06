@@ -1,7 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import os
 import math
 import time
+
+from flask.json import jsonify
 environment = os.environ.get('FLASK_ENV','dev')
 
 if environment=='production':
@@ -22,23 +24,37 @@ elif environment == 'dev':
                 self.M2 = 10
                 self.G = 9.81
                 self.dt = 0.01
-                self.a1 = math.pi/2
-                self.a2 = math.pi/2
-                self.av1 = 0
-                self.av2 = 0
-                self.last_update = time.time()
+                self.steps_per_frame = 3
             def step(self):
-                num1 = -self.G * ( 2* self.M1 + self.M2 ) * math.sin(self.a1)
-                num2 = -self.M2 * self.G * math.sin( self.a1- 2 * self.a2 )
-                num3 = -2 * math.sin( self.a1 - self.a2) * self.M2
-                num4 = self.av2 * self.av2 * self.L2 * self.av1 * self.av1 * self.L1 * math.cos(self.a1 - self.a2)
-                den = self.L1 *( 2* self.M1+ self.M2- self.M2* math.cos( 2* self.a1- 2* self.a2))
-                aa1 = (num1+ num2 + num3 + num4) / den
-                num5 = 2 * math.sin(self.a1 - self.a2)
-                num6 = self.av1 * self.av1 * self.L1 * (self.M1 + self.M2)
-                num7 = self.G * (self.M1 + self.M2) * math.cos(self.a1)
-                num8 = self.av2 * self.av28 * self.L2 * self.M2 * math.cos(self.a1 - self.a2)
-                den2 = self.L2 * (2 * self.M1 + self.M2 - self.M2 * math.cos(2 * self.a1 - 2 * self.a2))
+                data = request.json
+                a1 = float(data["a1"])
+                a2 = float(data["a2"])
+                av1 = float(data["av1"])
+                av2 = float(data["av2"])
+                for _ in range(self.steps_per_frame):
+                    num1 = -self.G * ( 2* self.M1 + self.M2 ) * math.sin(self.a1)
+                    num2 = -self.M2 * self.G * math.sin( self.a1- 2 * self.a2 )
+                    num3 = -2 * math.sin( self.a1 - self.a2) * self.M2
+                    num4 = self.av2 * self.av2 * self.L2 * self.av1 * self.av1 * self.L1 * math.cos(self.a1 - self.a2)
+                    den = self.L1 *( 2* self.M1+ self.M2- self.M2* math.cos( 2* self.a1- 2* self.a2))
+                    aa1 = (num1+ num2 + num3 + num4) / den
+                    num5 = 2 * math.sin(self.a1 - self.a2)
+                    num6 = self.av1 * self.av1 * self.L1 * (self.M1 + self.M2)
+                    num7 = self.G * (self.M1 + self.M2) * math.cos(self.a1)
+                    num8 = self.av2 * self.av28 * self.L2 * self.M2 * math.cos(self.a1 - self.a2)
+                    den2 = self.L2 * (2 * self.M1 + self.M2 - self.M2 * math.cos(2 * self.a1 - 2 * self.a2))
+                    aa2 = (num5 * (num6 + num7 + num8)) / den2
+
+                    av1 += aa1 * self.dt
+                    av2 += aa2 * self.dt
+                    a1 += av1 * self.dt
+                    a2 += av2 * self.dt
+                return jsonify({
+                    "a1" : a1,
+                    "a2" : a2,
+                    "av1" : av1,
+                    "av2" : av2
+                })
         @app.route('/')
         def home():
             return render_template('index.html')
