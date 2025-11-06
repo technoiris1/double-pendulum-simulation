@@ -54,9 +54,10 @@ if environment == "production":
     def home():
         return render_template('index.html')
 
-    '''@app.route('/update', method= ['POST'])
+    @app.route('/update', method= ['POST'])
     def update():
-        data = request.get_json()
+        return '<p>Hello</p>'
+        '''data = request.get_json()
         result = pendulum.step(data)
         return jsonify(result)'''
 else:
