@@ -49,16 +49,16 @@ class DoublePendulum:
 
 if environment == "production":
     app = Flask(__name__)
-    pendulum = DoublePendulum()
+    #pendulum = DoublePendulum()
     @app.route('/')
     def home():
         return render_template('index.html')
 
-    @app.route('/update', method= ['POST'])
+    '''@app.route('/update', method= ['POST'])
     def update():
         data = request.get_json()
         result = pendulum.step(data)
-        return jsonify(result)
+        return jsonify(result)'''
 else:
     def create_app():
         app = Flask(__name__)
