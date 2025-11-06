@@ -1,4 +1,3 @@
-from rope.base.oi.type_hinting.evaluate import method
 from flask import Flask, render_template, request
 import os
 import math
@@ -47,7 +46,8 @@ class DoublePendulum:
         }
 
 
-def create_app():
+
+if environment == "production":
     app = Flask(__name__)
     pendulum = DoublePendulum()
     @app.route('/')
@@ -59,10 +59,20 @@ def create_app():
         data = request.get_json()
         result = pendulum.step(data)
         return jsonify(result)
-    return app
-if environment == "production":
-    app = create_app()
 else:
+    def create_app():
+        app = Flask(__name__)
+        pendulum = DoublePendulum()
+        @app.route('/')
+        def home():
+            return render_template('index.html')
+
+        @app.route('/update', method= ['POST'])
+        def update():
+            data = request.get_json()
+            result = pendulum.step(data)
+            return jsonify(result)
+        return app
     if __name__ == '__main__':
         app = create_app()
         app.run(debug=True, host='0.0.0.0', port=8000)
