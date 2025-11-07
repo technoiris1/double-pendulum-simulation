@@ -13,26 +13,23 @@
             data-origin-x="{{ origin_x }}"
             data-origin-y="{{ origin_y }}"
         ></canvas>
-        <!-- initialises the canvas, and sets the starting coordinates -->
         <script>
             const canvas = document.getElementById("pendulum-canvas");
             const ctx = canvas.getContext("2d");
 
             const ORIGIN_X =
-                Number(canvas.getAttribute("data-origin-x")) || 300; //if you change the default values of the pendulum class, make sure to look at these.
+                Number(canvas.getAttribute("data-origin-x")) || 300;
             const ORIGIN_Y =
                 Number(canvas.getAttribute("data-origin-y")) || 100;
 
             function drawPendulum(coords) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // clears canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Draw pivot
                 ctx.beginPath();
                 ctx.arc(ORIGIN_X, ORIGIN_Y, 4, 0, Math.PI * 2);
                 ctx.fillStyle = "#444";
                 ctx.fill();
 
-                // Draw rods
                 ctx.beginPath();
                 ctx.moveTo(ORIGIN_X, ORIGIN_Y);
                 ctx.lineTo(coords[0].x, coords[0].y);
@@ -41,7 +38,6 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Draw bobs
                 for (let i = 0; i < coords.length; i++) {
                     ctx.beginPath();
                     ctx.arc(coords[i].x, coords[i].y, 10, 0, 2 * Math.PI);
@@ -55,7 +51,7 @@
             let latestCoords = null;
             const trail1 = [];
             const trail2 = [];
-            const MAX_TRAIL = 300; // cap trail length
+            const MAX_TRAIL = 300;
             async function pollCoords() {
                 try {
                     const response = await fetch("/coords", {
@@ -64,23 +60,17 @@
                     if (response.ok) {
                         latestCoords = await response.json();
                     }
-                } catch (e) {
-                    // ignore fetch errors
-                }
+                } catch (e) {}
             }
 
             function animate() {
                 if (latestCoords) {
-                    // Update trails
                     trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
                     trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
                     if (trail1.length > MAX_TRAIL) trail1.shift();
                     if (trail2.length > MAX_TRAIL) trail2.shift();
 
-                    // Draw scene
                     drawPendulum(latestCoords);
-
-                    // Draw trails
                     const drawTrail = (trail, color) => {
                         if (trail.length < 2) return;
                         ctx.beginPath();
@@ -98,7 +88,6 @@
                 requestAnimationFrame(animate);
             }
 
-            // Start polling at ~20Hz and animate at display refresh rate
             setInterval(pollCoords, 50);
             requestAnimationFrame(animate);
         </script>

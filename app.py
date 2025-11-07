@@ -26,7 +26,7 @@ class Double_Pendulum:
         self.y_2 = self.y_1 + self.length_rod_2 * math.cos(self.theta_2)
 
     def step(self, dt: float=0.06):
-        delta = self.theta_2 - self.theta_1 # Difference in angles
+        delta = self.theta_2 - self.theta_1
         denominator_1 = (self.mass_bob_1 + self.mass_bob_2) * self.length_rod_1 - self.mass_bob_2 * self.length_rod_1 * math.cos(delta) ** 2
         denominator_2 = (self.length_rod_2 / self.length_rod_1) * denominator_1
 
@@ -62,33 +62,18 @@ def run_simulation():
         double_pendulum.step()
         threading.Event().wait(0.03)
 
-# Start simulation in background thread
 threading.Thread(target=run_simulation, daemon=True).start()
 
-if environment == "production":
-    app = Flask(__name__)
-    @app.route('/')
-    def home():
-        return render_template('index.html',origin_x=double_pendulum.origin_x, origin_y=double_pendulum.origin_y)
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return render_template('index.html', origin_x=double_pendulum.origin_x, origin_y=double_pendulum.origin_y)
 
-    @app.route('/coords')
-    def coords():
-        return jsonify(double_pendulum.get_coords())
+@app.route('/coords')
+def coords():
+    return jsonify(double_pendulum.get_coords())
 
 
-else:
-    def create_app():
-        app = Flask(__name__)
-        @app.route('/')
-        def home():
-            return render_template('index.html', origin_x=double_pendulum.origin_x, origin_y=double_pendulum.origin_y)
 
-        @app.route('/coords')
-        def coords():
-            return jsonify(double_pendulum.get_coords())
-
-        return app
-
-    if __name__ == '__main__':
-        app = create_app()
-        app.run(debug=True, host='0.0.0.0', port=5051)
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5051)
