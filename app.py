@@ -6,7 +6,7 @@ environment = os.environ.get('FLASK_ENV', 'dev')
 
 class Double_Pendulum:
     def __init__(self, origin_x: float=300, origin_y: float=300, length_rod_1: float=120,
-                  length_rod_2: float=120, mass_bob_1: float=50, mass_bob_2: float=10,
+                  length_rod_2: float=120, mass_bob_1: float=10, mass_bob_2: float=10,
                     g: float=9.81, theta_1: float=math.pi/2, theta_2: float=math.pi/2,
                       omega_1: float=0.0, omega_2: float=0.0):
         self.origin_x = origin_x
