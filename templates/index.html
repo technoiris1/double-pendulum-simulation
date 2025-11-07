@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Double Pendulum</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     </head>
     <body>
         <canvas
@@ -13,6 +14,37 @@
             data-origin-x="{{ origin_x }}"
             data-origin-y="{{ origin_y }}"
         ></canvas>
+        <div class="">
+            <input
+                type="number"
+                id="bob1-mass"
+                class="border border-black/50 rounded-sm"
+                placeholder="Mass of bob 1"
+            />
+            <input
+                type="number"
+                id="bob2-mass"
+                class="border border-black/50 rounded-sm"
+                placeholder="Mass of bob 2"
+            />
+            <input
+                type="number"
+                id="rod1-length"
+                class="border border-black/50 rounded-sm"
+                placeholder="Length of rod 1"
+            />
+            <input
+                type="number"
+                id="rod2-length"
+                class="border border-black/50 rounded-sm"
+                placeholder="Length of rod 2"
+            />
+            <button
+                class="cursor-pointer bg-gray-200 pr-4 pl-4 hover:bg-gray-100 border border-black/80"
+            >
+                Update
+            </button>
+        </div>
         <script src="/static/js/script.js"></script>
     </body>
 </html>
