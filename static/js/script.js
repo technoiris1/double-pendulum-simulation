@@ -38,7 +38,13 @@ function drawPendulum(coords) {
   ctx.stroke();
   for (let i = 0; i < coords.length; i++) {
     ctx.beginPath();
-    ctx.arc(coords[i].x, coords[i].y, 10, 0, 2 * Math.PI);
+    ctx.arc(
+      coords[i].x,
+      coords[i].y,
+      i === 0 ? coords[2].m1 : coords[2].m2,
+      0,
+      2 * Math.PI,
+    );
     ctx.fillStyle = i === 0 ? "#1976d2" : "#ef6c00";
     ctx.fill();
     ctx.strokeStyle = "#222";
