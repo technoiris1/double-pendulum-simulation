@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, jsonify
-import os
-import math
-import time
+from flask import Flask, render_template, jsonify
+import math, threading, time, os
+
 environment = os.environ.get('FLASK_ENV', 'dev')
 
 
@@ -14,12 +13,13 @@ class DoublePendulum:
         self.G = 9.81
         self.dt = 0.01
         self.steps_per_frame = 3
+        self.a1 = math.pi / 2
+        self.a2 = math.pi / 2
+        self.av1 = 0
+        self.av2 = 0
 
-    def step(self, data):
-        a1 = float(data["a1"])
-        a2 = float(data["a2"])
-        av1 = float(data["av1"])
-        av2 = float(data["av2"])
+    def step(self):
+        a1, a2, av1, av2 = self.a1, self.a2, self.av1, self.av2
 
         for _ in range(self.steps_per_frame):
             num1 = -self.G * (2 * self.M1 + self.M2) * math.sin(a1)
@@ -40,17 +40,15 @@ class DoublePendulum:
             av2 += aa2 * self.dt
             a1 += av1 * self.dt
             a2 += av2 * self.dt
+        self.a1, self.a2, self.av1, self.av2 = a1, a2, av1, av2
 
-        return {
-            "a1": a1,
-            "a2": a2,
-            "av1": av1,
-            "av2": av2,
-            "L1" : self.L1,
-            "L2" : self.L2,
-            "M1" : self.M1,
-            "M2" : self.M2
-        }
+    def get_coords(self):
+        x1 = self.L1 * math.sin(self.a1)
+        y1 = self.L1 * math.cos(self.a1)
+        x2 = x1 + self.L2 * math.sin(self.a2)
+        y2 = y1 + self.L2 * math.cos(self.a2)
+        return {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
+
 
 if environment == "production":
     app = Flask(__name__)
@@ -60,11 +58,10 @@ if environment == "production":
     def home():
         return render_template('index.html')
 
-    @app.route('/update', methods=['POST'])
-    def update():
-        data = request.get_json(force=True)
-        result = pendulum.step(data)
-        return jsonify(result)
+    @app.route('/coords')
+    def coords():
+        return jsonify(pendulum.get_coords())
+
 
 else:
     def create_app():
@@ -74,23 +71,17 @@ else:
             while True:
                 pendulum.step()
                 time.sleep(0.03)
-        threading.Thread(target=run_simulation, daemon = True).start()
+        threading.Thread(target=run_simulation, daemon=True).start()
+
         @app.route('/')
         def home():
             return render_template('index.html')
 
         @app.route('/coords')
         def coords():
-            return jsonify({
-                "a1": pendulum.a1,
-                "a2" : pendulum.a2,
-                "x1" : pendulum.L1 * math.sin(pendulum.a1),
-                "y1": pendulum.L1 * math.cos(pendulum.a1),
-                "x2": pendulum.L1 * math.sin(pendulum.a1) +
-                        pendulum.L2 * math.sin(pendulum.a2),
-                "y2" : pendulum.L1 * math.sin(pendulum.a1)+
-                        pendulum.L2 * math.cos(pendulum.a2)
-            })
+            return jsonify(pendulum.get_coords())
+
+        return app
 
     if __name__ == '__main__':
         app = create_app()

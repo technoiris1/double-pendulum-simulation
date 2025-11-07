@@ -28,78 +28,45 @@ let L1 = 150,
   M1 = 10,
   M2 = 10;
 
-let lastUpdate = 0;
-let updating = false;
-async function update() {
-  if (updating) return;
-  updating = true;
+let latest = null;
+
+async function pollCoords() {
   try {
-    const res = await fetch("/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ a1, a2, av1, av2 }),
-    });
-
-    if (!res.ok) {
-      console.error("Bad response:", res.status);
-      return;
-    }
-
-    const data = await res.json();
-
-    a1 = data.a1;
-    a2 = data.a2;
-    av1 = data.av1;
-    av2 = data.av2;
-    L1 = data.L1;
-    L2 = data.L2;
-    M1 = data.M1;
-    M2 = data.M2;
-  } catch (err) {
-    console.error("Fetch error:", err);
-  } finally {
-    updating = false;
+    const res = await fetch("/coords", { cache: "no-store" });
+    if (res.ok) latest = await res.json();
+  } catch (e) {
+    console.error(e);
   }
 }
 
-function animate(timestamp) {
+setInterval(pollCoords, 50);
+
+function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCartesianPlane();
-  if (timestamp - lastUpdate > 50) {
-    update();
-    lastUpdate = timestamp;
+
+  if (latest) {
+    const { x1, y1, x2, y2 } = latest;
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, canvas.height / 2);
+    ctx.lineTo(canvas.width / 2 + x1, canvas.height / 2 + y1);
+    ctx.lineTo(canvas.width / 2 + x2, canvas.height / 2 + y2);
+    ctx.stroke();
+
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2 + x1, canvas.height / 2 + y1, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "blue";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2 + x2, canvas.height / 2 + y2, 10, 0, Math.PI * 2);
+    ctx.fill();
   }
-
-  const x1 = L1 * Math.sin(a1);
-  const y1 = L1 * Math.cos(a1);
-  const x2 = x1 + L2 * Math.sin(a2);
-  const y2 = y1 + L2 * Math.cos(a2);
-
-  // draw arms
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(canvas.width / 2, canvas.height / 2);
-  ctx.lineTo(canvas.width / 2 + x1, canvas.height / 2 + y1);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(canvas.width / 2 + x1, canvas.height / 2 + y1);
-  ctx.lineTo(canvas.width / 2 + x2, canvas.height / 2 + y2);
-  ctx.stroke();
-
-  // draw bobs
-  ctx.fillStyle = "red";
-  ctx.beginPath();
-  ctx.arc(canvas.width / 2 + x1, canvas.height / 2 + y1, M1, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "blue";
-  ctx.beginPath();
-  ctx.arc(canvas.width / 2 + x2, canvas.height / 2 + y2, M2, 0, Math.PI * 2);
-  ctx.fill();
 
   requestAnimationFrame(animate);
 }
-
 requestAnimationFrame(animate);
