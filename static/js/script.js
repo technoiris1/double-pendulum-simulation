@@ -19,7 +19,6 @@ function drawCartesianPlane() {
   ctx.stroke();
 }
 
-// --- simulation state ---
 let a1 = Math.PI / 2;
 let a2 = Math.PI / 2;
 let av1 = 0;
@@ -29,13 +28,10 @@ let L1 = 150,
   M1 = 10,
   M2 = 10;
 
-// --- control variables ---
 let lastUpdate = 0;
 let updating = false;
-
-// --- network update (non-blocking) ---
 async function update() {
-  if (updating) return; // skip if a call is already running
+  if (updating) return;
   updating = true;
   try {
     const res = await fetch("/update", {
@@ -66,12 +62,9 @@ async function update() {
   }
 }
 
-// --- animation loop ---
 function animate(timestamp) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCartesianPlane();
-
-  // only request backend update every 50 ms (~20 fps physics)
   if (timestamp - lastUpdate > 50) {
     update();
     lastUpdate = timestamp;
