@@ -1,6 +1,44 @@
 const canvas = document.getElementById("pendulum-canvas");
 const ctx = canvas.getContext("2d");
 let trailEnabled = true;
+let zoom = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let lastX, lastY;
+function applyTransform() {
+  ctx.setTransform(zoom, 0, 0, zoom, offsetX, offsetY);
+}
+// wheel scrolling
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const direction = e.deltaY < 0 ? 1 : -1;
+  const scale = 1.1;
+  const mouseX = e.offsetX;
+  const mouseY = e.offsetY;
+  const newZoom = direction > 0 ? zoom * scale : zoom / scale;
+  const clamped = Math.min(Math.max(newZoom, 0.5), 5);
+  const factor = clamped / zoom;
+  offsetX = mouseX - factor * (mouseX - offsetX);
+  offsetY = mouseY - factor * (mouseY - offsetY);
+  zoom = clamped;
+});
+
+// mouse pannning
+canvas.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+});
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  offsetX += e.offsetX - lastX;
+  offsetY += e.offsety - lastY;
+  lastX = e.offsetX;
+  lastY = e.offsetY;
+});
+canvas.addEventListener("mouseup", () => (isDragging = false));
+canvas.addEventListener("mouseleave", () => (isDragging = false));
 function drawCartesianPlane() {
   const gridSize = 20;
   const gridColor = "#ccc";
@@ -24,7 +62,14 @@ window.addEventListener("resize", () => {
   ORIGIN_Y = canvas.height / 2;
 });
 function drawPendulum(coords) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  applyTransform();
+  ctx.clearRect(
+    -offsetX / zoom,
+    -offsetY / zoom,
+    canvas.width / zoom,
+    canvas.height / zoom,
+  );
   drawCartesianPlane();
   ctx.beginPath();
   ctx.arc(ORIGIN_X, ORIGIN_Y, 4, 0, Math.PI * 2);
@@ -51,6 +96,7 @@ function drawPendulum(coords) {
     ctx.strokeStyle = "#222";
     ctx.stroke();
   }
+  ctx.restore();
 }
 let latestCoords = null;
 const trail1 = [];
