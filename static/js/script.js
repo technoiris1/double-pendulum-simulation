@@ -88,3 +88,12 @@ function animate() {
 }
 setInterval(pollCoords, 40);
 requestAnimationFrame(animate);
+
+document.getElementById("reset-btn").addEventListener("click", async () => {
+  await fetch("/restart", { method: "POST" });
+  trail1.length = 0;
+  trail2.length = 0;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCartesianPlane();
+});

@@ -56,15 +56,22 @@ class Double_Pendulum:
             {'m1': self.mass_bob_1, 'm2' : self.mass_bob_2}
         ]
 
-double_pendulum = Double_Pendulum()
 
+stop_event = threading.Event()
+simulation_thread = None
+double_pendulum = Double_Pendulum()
 def run_simulation():
-    while True:
+    while not stop_event.is_set():
         double_pendulum.step()
         threading.Event().wait(0.03)
 
-threading.Thread(target=run_simulation, daemon=True).start()
+def start_simulation():
+    global simulation_thread, stop_event, double_pendulum
+    stop_event.clear()
+    simulation_thread = threading.Thread(target=run_simulation, daemon=True)
+    simulation_thread.start()
 
+start_simulation()
 app = Flask(__name__)
 @app.route('/')
 def home():
@@ -74,7 +81,16 @@ def home():
 def coords():
     return jsonify(double_pendulum.get_coords())
 
+@app.route('/restart', methods=['POST'])
+def restart():
+    global stop_event, double_pendulum
+    stop_event.set()
 
+    threading.Event().wait(0.05)
+    double_pendulum = Double_Pendulum()
+
+    start_simulation()
+    return jsonify({"status": "restarted"})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5051)
