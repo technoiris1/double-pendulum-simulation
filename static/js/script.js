@@ -24,21 +24,6 @@ canvas.addEventListener("wheel", (e) => {
   zoom = clamped;
 });
 
-// mouse pannning
-canvas.addEventListener("mousedown", (e) => {
-  isDragging = true;
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-});
-canvas.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
-  offsetX += e.offsetX - lastX;
-  offsetY += e.offsety - lastY;
-  lastX = e.offsetX;
-  lastY = e.offsetY;
-});
-canvas.addEventListener("mouseup", () => (isDragging = false));
-canvas.addEventListener("mouseleave", () => (isDragging = false));
 function drawCartesianPlane() {
   const gridSize = 20;
   const gridColor = "#ccc";
