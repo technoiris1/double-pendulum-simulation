@@ -1,5 +1,6 @@
 const canvas = document.getElementById("pendulum-canvas");
 const ctx = canvas.getContext("2d");
+let trailEnabled = true;
 function drawCartesianPlane() {
   const gridSize = 20;
   const gridColor = "#ccc";
@@ -65,10 +66,12 @@ async function pollCoords() {
 }
 function animate() {
   if (latestCoords) {
-    trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
-    trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
-    if (trail1.length > MAX_TRAIL) trail1.shift();
-    if (trail2.length > MAX_TRAIL) trail2.shift();
+    if (trailEnabled) {
+      trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
+      trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
+      if (trail1.length > MAX_TRAIL) trail1.shift();
+      if (trail2.length > MAX_TRAIL) trail2.shift();
+    }
     drawPendulum(latestCoords);
     const drawTrail = (trail, color) => {
       if (trail.length < 2) return;
@@ -93,7 +96,11 @@ document.getElementById("reset-btn").addEventListener("click", async () => {
   await fetch("/restart", { method: "POST" });
   trail1.length = 0;
   trail2.length = 0;
-
+  trailEnabled = false;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCartesianPlane();
+
+  setTimeout(() => {
+    trailEnabled = true;
+  }, 500);
 });
