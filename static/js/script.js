@@ -23,7 +23,7 @@ canvas.addEventListener("wheel", (e) => {
   offsetY = mouseY - factor * (mouseY - offsetY);
   zoom = clamped;
 });
-
+// plane
 function drawCartesianPlane() {
   const gridSize = 20;
   const gridColor = "#ccc";
@@ -56,17 +56,22 @@ function drawPendulum(coords) {
     canvas.height / zoom,
   );
   drawCartesianPlane();
+
+  // pivot thingy
   ctx.beginPath();
   ctx.arc(ORIGIN_X, ORIGIN_Y, 4, 0, Math.PI * 2);
   ctx.fillStyle = "#444";
   ctx.fill();
+
+  // arms
   ctx.beginPath();
   ctx.moveTo(ORIGIN_X, ORIGIN_Y);
   ctx.lineTo(coords[0].x, coords[0].y);
   ctx.lineTo(coords[1].x, coords[1].y);
   ctx.strokeStyle = "#333";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = zoom;
   ctx.stroke();
+
   for (let i = 0; i < coords.length; i++) {
     ctx.beginPath();
     ctx.arc(
@@ -107,9 +112,13 @@ function animate() {
     const drawTrail = (trail, color) => {
       if (trail.length < 2) return;
       ctx.beginPath();
-      ctx.moveTo(trail[0].x, trail[0].y);
+      const startX = trail[0].x * zoom + offsetX;
+      const startY = trail[0].y * zoom + offsetY;
+      ctx.moveTo(startX, startY);
       for (let i = 1; i < trail.length; i++) {
-        ctx.lineTo(trail[i].x, trail[i].y);
+        const x = trail[i].x * zoom + offsetX;
+        const y = trail[i].y * zoom + offsetY;
+        ctx.lineTo(x, y);
       }
       ctx.strokeStyle = color;
       ctx.lineWidth = 1.25;
