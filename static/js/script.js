@@ -23,6 +23,29 @@ canvas.addEventListener("wheel", (e) => {
   offsetY = mouseY - factor * (mouseY - offsetY);
   zoom = clamped;
 });
+
+// pinch zoom on mobiles
+let lastDist = 0;
+canvas.addEventListener("touchmove", (e) => {
+  if (e.touches.length == 2) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    if (!lastDist) lastDist = dist;
+    const scale = dist / lastDist;
+    zoom = Math.min(Math.max(zoom * scale, 0.5), 5);
+    lastDist = dist;
+  }
+});
+canvas.addEventListener("touchend", () => (lastDist = 0));
+
+// double click to rset zoom on phone
+canvas.addEventListener("dblclick", () => {
+  zoom = 1;
+  offsetX = 0;
+  offsetY = 0;
+});
 // plane
 function drawCartesianPlane() {
   const gridSize = 20;
