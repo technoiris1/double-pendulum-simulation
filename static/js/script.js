@@ -92,7 +92,7 @@ function drawPendulum(coords) {
   ctx.lineTo(coords[0].x, coords[0].y);
   ctx.lineTo(coords[1].x, coords[1].y);
   ctx.strokeStyle = "#333";
-  ctx.lineWidth = zoom;
+  ctx.lineWidth = 1.5 / zoom;
   ctx.stroke();
 
   for (let i = 0; i < coords.length; i++) {
@@ -154,7 +154,6 @@ function animate() {
 }
 setInterval(pollCoords, 40);
 requestAnimationFrame(animate);
-
 document.getElementById("reset-btn").addEventListener("click", async () => {
   await fetch("/restart", { method: "POST" });
   trail1.length = 0;
@@ -166,4 +165,31 @@ document.getElementById("reset-btn").addEventListener("click", async () => {
   setTimeout(() => {
     trailEnabled = true;
   }, 500);
+});
+
+document.getElementById("update-btn").addEventListener("click", async () => {
+  const lengthRod1 = document.getElementById("rod1-length").value;
+  const lengthRod2 = document.getElementById("rod2-length").value;
+  const massBob1 = document.getElementById("bob1-mass").value;
+  const massBob2 = document.getElementById("bob2-mass").value;
+  const accG = document.getElementById("acc-g").value;
+  const data = {
+    length_rod_1: lengthRod1,
+    length_rod_2: lengthRod2,
+    mass_bob_1: massBob1,
+    mass_bob_2: massBob2,
+    g: accG,
+  };
+  await fetch("/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: data,
+  })
+    .then((response) => response.json())
+    .then((dataR) => {
+      console.log("Success:", dataR);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 });

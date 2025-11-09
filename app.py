@@ -1,21 +1,19 @@
-from flask import Flask, render_template, jsonify
-import math, threading,os
+from flask import Flask, render_template, jsonify, request
+import math, threading,os, json
 
 environment = os.environ.get('FLASK_ENV', 'dev')
 
 
-class Double_Pendulum:
-    def __init__(self, origin_x: float=300, origin_y: float=300, length_rod_1: float=120,
-                  length_rod_2: float=120, mass_bob_1: float=10, mass_bob_2: float=10,
-                    g: float=9.81, theta_1: float=math.pi/2, theta_2: float=math.pi/2,
+class Double_Pendulum():
+    def __init__(self, data, origin_x: float=300, origin_y: float=300,theta_1: float=math.pi/2, theta_2: float=math.pi/2,
                       omega_1: float=0.0, omega_2: float=0.0):
         self.origin_x = origin_x
         self.origin_y = origin_y
-        self.length_rod_1 = length_rod_1
-        self.length_rod_2 = length_rod_2
-        self.mass_bob_1 = mass_bob_1
-        self.mass_bob_2 = mass_bob_2
-        self.g = g
+        self.length_rod_1 = data.get("length_rod_1")
+        self.length_rod_2 = data.get("length_rod_2")
+        self.mass_bob_1 = data.get("mass_bob_1")
+        self.mass_bob_2 = data.get("mass_bob_2")
+        self.g = data.get("g")
         self.theta_1 = theta_1 # angle of bob from verticle plane
         self.theta_2 = theta_2
         self.omega_1 = omega_1 # angular velocity of bob from vertical plane
@@ -59,7 +57,9 @@ class Double_Pendulum:
 
 stop_event = threading.Event()
 simulation_thread = None
-double_pendulum = Double_Pendulum()
+standard_config = '{"length_rod_1":150, "length_rod_2":120, "mass_bob_1" : 50, "mass_bob_2":10, "g":9.81}'
+standard_data = json.loads(standard_config)
+double_pendulum = Double_Pendulum(standard_data)
 def run_simulation():
     while not stop_event.is_set():
         double_pendulum.step()
@@ -91,6 +91,21 @@ def restart():
 
     start_simulation()
     return jsonify({"status": "restarted"})
+
+@app.route('/update', methods = ['POST'])
+def update():
+    if request.is_json:
+        data = request.get_json()
+
+        global stop_event, double_pendulum
+        stop_event.set()
+        threading.Event().wait(0.05)
+        double_pendulum = Double_Pendulum(data)
+        start_simulation()
+        return jsonify({"success": "updated"})
+    else:
+        return jsonify({"error": "400"})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5051)
