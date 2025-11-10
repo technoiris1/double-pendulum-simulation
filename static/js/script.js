@@ -39,8 +39,6 @@ canvas.addEventListener("touchmove", (e) => {
   }
 });
 canvas.addEventListener("touchend", () => (lastDist = 0));
-
-// double click to rset zoom on phone
 canvas.addEventListener("dblclick", () => {
   zoom = 1;
   offsetX = 0;
@@ -125,6 +123,7 @@ async function pollCoords() {
 }
 function animate() {
   if (latestCoords) {
+    updateAccelerationData(latestCoords);
     if (trailEnabled) {
       trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
       trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
@@ -221,3 +220,103 @@ document.getElementById("update-btn").addEventListener("click", async () => {
     }, 500);
   }
 });
+const acceleratCtx = document
+  .getElementById("acceleration-grph")
+  .getContext("2d");
+
+const accelerationChart = new Chart(acceleratCtx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: "Bob 1 Acceleration",
+        borderColor: "rgba(25,118,210,1)",
+        backgroundColor: "rgba(25,118,210,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+      {
+        label: "Bob 2 Acceleration",
+        borderColor: "rgba(239,108,0,1)",
+        backgroundColor: "rgba(239,108,0,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    scales: {
+      x: {
+        title: { display: true, text: "Time (s)" },
+        ticks: { color: "#555", maxTicksLimit: 12 },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+      y: {
+        title: { display: true, text: "Acceleration (m/s²)" },
+        ticks: { color: "#555" },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+    },
+    plugins: {
+      legend: {
+        position: "top",
+        labels: { color: "#222", font: { size: 14, weight: "bold" } },
+      },
+    },
+  },
+});
+
+let lastPositions = null;
+let lastVelocities = null;
+const dt = 0.04; // this too is milliseconds
+let time = 0;
+const updatePeriod = 500; // this is milliseconds
+let lastUpdate = Date.now();
+
+function updateAccelerationData(coords) {
+  const bobs = coords.slice(0, 2);
+
+  if (!lastPositions) {
+    lastPositions = bobs.map((c) => ({ x: c.x, y: c.y }));
+    lastVelocities = bobs.map(() => ({ x: 0, y: 0 }));
+    return;
+  }
+  const newVelocities = bobs.map((c, i) => ({
+    x: (c.x - lastPositions[i].x) / dt,
+    y: (c.y - lastPositions[i].y) / dt,
+  }));
+
+  const accels = newVelocities.map((v, i) => ({
+    x: (v.x - lastVelocities[i].x) / dt,
+    y: (v.y - lastVelocities[i].y) / dt,
+  }));
+
+  const mag1 = Math.hypot(accels[0].x, accels[0].y);
+  const mag2 = Math.hypot(accels[1].x, accels[1].y);
+  const now = Date.now();
+  if (now - lastUpdate >= updatePeriod) {
+    const MAX_POINTS = 80;
+    time += updatePeriod / 1000;
+    accelerationChart.data.datasets[0].data.push(mag1);
+    accelerationChart.data.datasets[1].data.push(mag2);
+    accelerationChart.data.labels.push(time.toFixed(1));
+    // functionality for the chart to adjust
+    if (accelerationChart.data.labels.length > MAX_POINTS) {
+      accelerationChart.data.labels.shift();
+      accelerationChart.data.datasets[0].data.shift();
+      accelerationChart.data.datasets[1].data.shift();
+    }
+
+    accelerationChart.update("none");
+    lastUpdate = now;
+  }
+
+  lastPositions = bobs.map((c) => ({ x: c.x, y: c.y }));
+  lastVelocities = newVelocities;
+}

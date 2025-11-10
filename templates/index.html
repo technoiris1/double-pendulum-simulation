@@ -17,9 +17,7 @@
     <body
         class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4"
     >
-        <h1 class="text-2xl font-semibold text-gray-800 mb-4">
-            Double Pendulum
-        </h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Double Pendulum</h1>
 
         <div
             class="flex flex-col lg:flex-row gap-6 items-start w-full max-w-5xl"
@@ -37,7 +35,7 @@
             <div
                 class="flex flex-col gap-4 p-4 bg-white border border-gray-300 rounded-lg shadow-sm w-full lg:w-80"
             >
-                <h2 class="text-lg font-medium text-gray-700 border-b pb-2">
+                <h2 class="text-lg text-gray-700 border-b pb-2">
                     Configuration
                 </h2>
 
@@ -124,8 +122,28 @@
                 </div>
             </div>
         </div>
+        <div
+            class="w-full mt-10 bg-white rounded-lg shadow-md border border-gray-300 p-6"
+        >
+            <h2 class="text-xl text-gray-800 mb-4 text-center">
+                Acceleration Graph (a vs t graph)
+            </h2>
+            <div style="width: 100%; height: 450px">
+                <canvas id="acceleration-grph"></canvas>
+            </div>
+        </div>
 
+        <div
+            class="w-full mt-10 bg-white rounded-lg shadow-md border border-gray-300 p-6"
+        >
+            <h2 class="text-xl text-gray-800 mb-4 text-center">
+                Angular Velocity Graph (Live)
+            </h2>
+            <div style="width: 100%; height: 450px">
+                <canvas id="angularv-grph"></canvas>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="/static/js/script.js"></script>
-        <script src="https://unpkg.com/konva@10.0.0-1/konva.min.js"></script>
     </body>
 </html>
