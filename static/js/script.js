@@ -125,6 +125,7 @@ function animate() {
   if (latestCoords) {
     updateAccelerationData(latestCoords);
     updateAngularVelocityData(latestCoords);
+    updateEnergyData(latestCoords);
     if (trailEnabled) {
       trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
       trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
@@ -409,4 +410,112 @@ function updateAngularVelocityData(coords) {
   }
 
   lastAngles = [theta1, theta2];
+}
+const energyCtx = document.getElementById("energy-grph").getContext("2d");
+
+const energyChart = new Chart(energyCtx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: "Kinetic Energy (T)",
+        borderColor: "rgba(46,204,113,1)",
+        backgroundColor: "rgba(46,204,113,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+      {
+        label: "Potential Energy (U)",
+        borderColor: "rgba(243,156,18,1)",
+        backgroundColor: "rgba(243,156,18,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+      {
+        label: "Total Energy (E)",
+        borderColor: "rgba(52,152,219,1)",
+        backgroundColor: "rgba(52,152,219,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    scales: {
+      x: {
+        title: { display: true, text: "Time (s)" },
+        ticks: { color: "#555", maxTicksLimit: 12 },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+      y: {
+        title: { display: true, text: "Energy (Joules)" },
+        ticks: { color: "#555" },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+    },
+    plugins: {
+      legend: {
+        position: "top",
+        labels: { color: "#222", font: { size: 14, weight: "bold" } },
+      },
+    },
+  },
+});
+
+let lastEnergyUpdate = Date.now();
+
+function updateEnergyData(coords) {
+  const b1 = coords[0];
+  const b2 = coords[1];
+  const { m1, m2 } = coords[2]; // mass info from backend
+  const l1 = parseFloat(document.getElementById("rod1-length").value) || 100;
+  const l2 = parseFloat(document.getElementById("rod2-length").value) || 100;
+  const g = parseFloat(document.getElementById("acc-g").value) || 9.8;
+  const theta1 = Math.atan2(b1.y - ORIGIN_Y, b1.x - ORIGIN_X);
+  const theta2 = Math.atan2(b2.y - b1.y, b2.x - b1.x);
+  if (!updateEnergyData.lastAngles) {
+    updateEnergyData.lastAngles = [theta1, theta2];
+    return;
+  }
+  const angV1 = (theta1 - updateEnergyData.lastAngles[0]) / dt;
+  const angV2 = (theta2 - updateEnergyData.lastAngles[1]) / dt;
+  updateEnergyData.lastAngles = [theta1, theta2];
+  const T =
+    0.5 * m1 * (l1 * angV1) ** 2 +
+    0.5 *
+      m2 *
+      ((l1 * angV1) ** 2 +
+        (l2 * angV2) ** 2 +
+        2 * l1 * l2 * angV1 * angV2 * Math.cos(theta1 - theta2));
+  const y1 = b1.y - ORIGIN_Y;
+  const y2 = b2.y - ORIGIN_Y;
+  const U = m1 * g * y1 + m2 * g * y2;
+
+  const E = T + U;
+
+  const now = Date.now();
+  if (now - lastEnergyUpdate >= updatePeriod) {
+    const MAX_POINTS = 80;
+    time += updatePeriod / 1000;
+
+    energyChart.data.datasets[0].data.push(T);
+    energyChart.data.datasets[1].data.push(U);
+    energyChart.data.datasets[2].data.push(E);
+    energyChart.data.labels.push(time.toFixed(1));
+
+    if (energyChart.data.labels.length > MAX_POINTS) {
+      energyChart.data.labels.shift();
+      energyChart.data.datasets.forEach((d) => d.data.shift());
+    }
+
+    energyChart.update("none");
+    lastEnergyUpdate = now;
+  }
 }
