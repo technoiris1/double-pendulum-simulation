@@ -186,33 +186,38 @@ document.getElementById("update-btn").addEventListener("click", async () => {
   const massBob1 = document.getElementById("bob1-mass").value;
   const massBob2 = document.getElementById("bob2-mass").value;
   const accG = document.getElementById("acc-g").value;
-  const data = {
-    length_rod_1: lengthRod1,
-    length_rod_2: lengthRod2,
-    mass_bob_1: massBob1,
-    mass_bob_2: massBob2,
-    g: accG,
-  };
-  await fetch("/update", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  })
-    .then((response) => response.json())
-    .then((dataR) => {
-      console.log("Success:", dataR);
+  if (!lengthRod1 || !lengthRod2 || !massBob1 || !massBob2 || !accG) {
+    alert("fill all the fields :angry:");
+    return;
+  } else {
+    const data = {
+      length_rod_1: lengthRod1,
+      length_rod_2: lengthRod2,
+      mass_bob_1: massBob1,
+      mass_bob_2: massBob2,
+      g: accG,
+    };
+    await fetch("/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+      .then((response) => response.json())
+      .then((dataR) => {
+        console.log("Success:", dataR);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
 
-  trail1.length = 0;
-  trail2.length = 0;
-  trailEnabled = false;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawCartesianPlane();
+    trail1.length = 0;
+    trail2.length = 0;
+    trailEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawCartesianPlane();
 
-  setTimeout(() => {
-    trailEnabled = true;
-  }, 500);
+    setTimeout(() => {
+      trailEnabled = true;
+    }, 500);
+  }
 });
