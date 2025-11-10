@@ -167,6 +167,19 @@ document.getElementById("reset-btn").addEventListener("click", async () => {
   }, 500);
 });
 
+document.getElementById("restart-btn").addEventListener("click", async () => {
+  await fetch("/restart", { method: "POST" });
+  trail1.length = 0;
+  trail2.length = 0;
+  trailEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCartesianPlane();
+
+  setTimeout(() => {
+    trailEnabled = true;
+  }, 500);
+});
+
 document.getElementById("update-btn").addEventListener("click", async () => {
   const lengthRod1 = document.getElementById("rod1-length").value;
   const lengthRod2 = document.getElementById("rod2-length").value;

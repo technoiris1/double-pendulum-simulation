@@ -91,7 +91,25 @@ def coords():
 
 @app.route('/restart', methods=['POST'])
 def restart():
-    restart_simulation()
+    global stop_event, double_pendulum
+    current_data = {
+        "length_rod_1": double_pendulum.length_rod_1,
+        "length_rod_2": double_pendulum.length_rod_2,
+        "mass_bob_1": double_pendulum.mass_bob_1,
+        "mass_bob_2": double_pendulum.mass_bob_2,
+        "g": double_pendulum.g
+    }
+    stop_event.set()
+    threading.Event().wait(0.05)
+    double_pendulum = Double_Pendulum(
+        current_data,
+        theta_1=math.pi / 2,
+        theta_2=math.pi / 2,
+        omega_1=0.0,
+        omega_2=0.0
+    )
+    start_simulation()
+
     return jsonify({"status": "restarted"})
 
 @app.route('/reset', methods=['POST'])
