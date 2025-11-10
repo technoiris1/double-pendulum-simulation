@@ -183,7 +183,7 @@ document.getElementById("update-btn").addEventListener("click", async () => {
   await fetch("/update", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: data,
+    body: JSON.stringify(data),
   })
     .then((response) => response.json())
     .then((dataR) => {
