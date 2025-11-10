@@ -155,7 +155,7 @@ function animate() {
 setInterval(pollCoords, 40);
 requestAnimationFrame(animate);
 document.getElementById("reset-btn").addEventListener("click", async () => {
-  await fetch("/restart", { method: "POST" });
+  await fetch("/reset", { method: "POST" });
   trail1.length = 0;
   trail2.length = 0;
   trailEnabled = false;
@@ -192,4 +192,14 @@ document.getElementById("update-btn").addEventListener("click", async () => {
     .catch((error) => {
       console.error("Error:", error);
     });
+
+  trail1.length = 0;
+  trail2.length = 0;
+  trailEnabled = false;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCartesianPlane();
+
+  setTimeout(() => {
+    trailEnabled = true;
+  }, 500);
 });

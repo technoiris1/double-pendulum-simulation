@@ -56,7 +56,7 @@ class Double_Pendulum:
 
 stop_event = threading.Event()
 simulation_thread = None
-standard_data = json.loads('{"length_rod_1":150, "length_rod_2":120, "mass_bob_1":50, "mass_bob_2":10, "g":9.81}')
+standard_data = json.loads('{"length_rod_1":120, "length_rod_2":120, "mass_bob_1":10, "mass_bob_2":10, "g":9.81}')
 double_pendulum = Double_Pendulum(standard_data)
 
 def run_simulation():
@@ -93,6 +93,12 @@ def coords():
 def restart():
     restart_simulation()
     return jsonify({"status": "restarted"})
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    restart_simulation()
+    return jsonify({"status": "restarted"})
+
 
 @app.route('/update', methods=['POST'])
 def update():
