@@ -124,6 +124,7 @@ async function pollCoords() {
 function animate() {
   if (latestCoords) {
     updateAccelerationData(latestCoords);
+    updateAngularVelocityData(latestCoords);
     if (trailEnabled) {
       trail1.push({ x: latestCoords[0].x, y: latestCoords[0].y });
       trail2.push({ x: latestCoords[1].x, y: latestCoords[1].y });
@@ -319,4 +320,93 @@ function updateAccelerationData(coords) {
 
   lastPositions = bobs.map((c) => ({ x: c.x, y: c.y }));
   lastVelocities = newVelocities;
+}
+
+const angularvCtx = document.getElementById("angularv-grph").getContext("2d");
+const angularVelocityChart = new Chart(angularvCtx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: "Bob 1 Angular Velocity (ω₁)",
+        borderColor: "rgba(25,118,210,1)",
+        backgroundColor: "rgba(25,118,210,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+      {
+        label: "Bob 2 Angular Velocity (ω₂)",
+        borderColor: "rgba(239,108,0,1)",
+        backgroundColor: "rgba(239,108,0,0.08)",
+        borderWidth: 3,
+        data: [],
+        tension: 0.3,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    scales: {
+      x: {
+        title: { display: true, text: "Time (s)" },
+        ticks: { color: "#555", maxTicksLimit: 12 },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+      y: {
+        title: { display: true, text: "Angular Velocity (rad/s)" },
+        ticks: { color: "#555" },
+        grid: { color: "rgba(0,0,0,0.05)" },
+      },
+    },
+    plugins: {
+      legend: {
+        position: "top",
+        labels: { color: "#222", font: { size: 14, weight: "bold" } },
+      },
+    },
+  },
+});
+
+let lastAngles = null;
+let lastAngularUpdate = Date.now();
+
+function updateAngularVelocityData(coords) {
+  const b1 = coords[0];
+  const b2 = coords[1];
+
+  const theta1 = Math.atan2(b1.y - ORIGIN_Y, b1.x - ORIGIN_X);
+  const theta2 = Math.atan2(b2.y - b1.y, b2.x - b1.x);
+
+  if (!lastAngles) {
+    lastAngles = [theta1, theta2];
+    return;
+  }
+
+  const angV1 = (theta1 - lastAngles[0]) / dt; // rad/s
+  const angV2 = (theta2 - lastAngles[1]) / dt;
+
+  const now = Date.now();
+  if (now - lastAngularUpdate >= updatePeriod) {
+    const MAX_POINTS = 80;
+    time += updatePeriod / 1000;
+
+    angularVelocityChart.data.datasets[0].data.push(angV1);
+    angularVelocityChart.data.datasets[1].data.push(angV2);
+    angularVelocityChart.data.labels.push(time.toFixed(1));
+
+    if (angularVelocityChart.data.labels.length > MAX_POINTS) {
+      angularVelocityChart.data.labels.shift();
+      angularVelocityChart.data.datasets[0].data.shift();
+      angularVelocityChart.data.datasets[1].data.shift();
+    }
+
+    angularVelocityChart.update("none");
+    lastAngularUpdate = now;
+  }
+
+  lastAngles = [theta1, theta2];
 }
