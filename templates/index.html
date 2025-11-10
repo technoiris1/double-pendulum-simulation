@@ -120,8 +120,44 @@
                         Reset
                     </button>
                 </div>
+                <h2 class="text-lg text-gray-700 border-b pb-2">
+                    Wind Control
+                </h2>
+                <div class="flex flex-col gap-2">
+                    <label
+                        class="text-sm text-gray-600 font-medium"
+                        for="wind-speed"
+                        >Wind Speed (km/h)</label
+                    >
+                    <input
+                        type="range"
+                        id="wind-speed"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="0"
+                        class="w-full"
+                        oninput="document.getElementById('wind-val').innerText = this.value"
+                    />
+                    <span id="wind-val">0</span> km/h
+
+                    <label class="text-sm font-medium mt-2"
+                        >Wind Direction</label
+                    >
+                    <select
+                        id="wind-dir"
+                        class="border rounded-md px-2 py-1 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="none">None</option>
+                        <option value="left">From Left</option>
+                        <option value="right">From Right</option>
+                        <option value="up">From Bottom</option>
+                        <option value="down">From Top</option>
+                    </select>
+                </div>
             </div>
         </div>
+
         <div
             class="w-full mt-10 bg-white rounded-lg shadow-md border border-gray-300 p-6"
         >

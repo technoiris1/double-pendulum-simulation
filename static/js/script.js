@@ -6,6 +6,26 @@ let offsetX = 0;
 let offsetY = 0;
 let isDragging = false;
 let lastX, lastY;
+
+let windSpeed = 0;
+let windDir = "none";
+
+function getWindVector() {
+  const v = windSpeed * 0.27778;
+  switch (windDir) {
+    case "left":
+      return { x: v, y: 0 };
+    case "right":
+      return { x: -v, y: 0 };
+    case "up":
+      return { x: 0, y: v };
+    case "down":
+      return { x: 0, y: -v };
+    default:
+      return { x: 0, y: 0 };
+  }
+}
+
 function applyTransform() {
   ctx.setTransform(zoom, 0, 0, zoom, offsetX, offsetY);
 }
@@ -132,7 +152,86 @@ function animate() {
       if (trail1.length > MAX_TRAIL) trail1.shift();
       if (trail2.length > MAX_TRAIL) trail2.shift();
     }
-    drawPendulum(latestCoords);
+
+    function applyWindEffect(coords) {
+      const { x: windX, y: windY } = getWindVector();
+      const dragFactor = 0.002;
+      const scale = 2.5;
+      if (!applyWindEffect.offsets) {
+        applyWindEffect.offsets = [
+          { x: 0, y: 0 },
+          { x: 0, y: 0 },
+        ];
+      }
+      for (let i = 0; i < 2; i++) {
+        const off = applyWindEffect.offsets[i];
+        off.x += (windX * scale - off.x) * dragFactor;
+        off.y += (windY * scale - off.y) * dragFactor;
+        coords[i].x += off.x;
+        coords[i].y += off.y;
+      }
+
+      return coords;
+    }
+
+    function drawWindArrow() {
+      const { x, y } = getWindVector();
+      if (x === 0 && y === 0) return;
+
+      const margin = 25;
+      const len = 70;
+      const arrowHead = 12;
+      const labelOffset = 25;
+      const centerX = canvas.width - len - margin;
+      const centerY = margin + 40;
+
+      const mag = Math.hypot(x, y);
+      if (mag < 0.0001) return;
+      const dirX = x / mag;
+      const dirY = -y / mag; // invert Y (canvas Y grows downward)
+
+      const endX = centerX + dirX * len;
+      const endY = centerY + dirY * len;
+
+      ctx.save();
+      const alpha = Math.min(0.2 + windSpeed / 60, 1);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = "rgba(52,152,219,1)";
+      ctx.fillStyle = "rgba(52,152,219,1)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+      ctx.beginPath();
+      const angle = Math.atan2(endY - centerY, endX - centerX);
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(
+        endX - arrowHead * Math.cos(angle - Math.PI / 6),
+        endY - arrowHead * Math.sin(angle - Math.PI / 6),
+      );
+      ctx.lineTo(
+        endX - arrowHead * Math.cos(angle + Math.PI / 6),
+        endY - arrowHead * Math.sin(angle + Math.PI / 6),
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = "bold 14px 'Segoe UI', sans-serif";
+      ctx.fillStyle = "#2980b9";
+      ctx.fillText(
+        `Wind → ${windSpeed.toFixed(0)} km/h`,
+        centerX - 100,
+        centerY - labelOffset,
+      );
+
+      ctx.restore();
+    }
+    let windedCoords = applyWindEffect(
+      JSON.parse(JSON.stringify(latestCoords)),
+    );
+    drawPendulum(windedCoords);
+    drawWindArrow();
+
     const drawTrail = (trail, color) => {
       if (trail.length < 2) return;
       ctx.beginPath();
@@ -519,3 +618,10 @@ function updateEnergyData(coords) {
     lastEnergyUpdate = now;
   }
 }
+
+document.getElementById("wind-speed").addEventListener("input", (e) => {
+  windSpeed = parseFloat(e.target.value);
+});
+document.getElementById("wind-dir").addEventListener("change", (e) => {
+  windDir = e.target.value;
+});
